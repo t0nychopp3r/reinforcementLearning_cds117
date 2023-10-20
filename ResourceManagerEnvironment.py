@@ -62,12 +62,13 @@ class ResourceManagerEnv(gym.Env):
         self.total_reward = 0
 
         observation = self.get_obs()
-        info = self.get_info()
+        #Remove info as it is not needed and DQN throws an error
+        #info = self.get_info()
 
         if self.render_mode == "human":
             self.render_frame()
 
-        return observation, info
+        return observation
     
     def get_obs(self):
         #Initialize observation
@@ -142,6 +143,7 @@ class ResourceManagerEnv(gym.Env):
 
         #set truncated to false as it is not needed
         truncated = False
+
 
         return observation, reward, terminated, truncated, info
     
