@@ -27,10 +27,10 @@ class ResourceManagerEnv(gym.Env):
 
         #Map the action to the corresponding movement
         self.action_to_direction = {
-            0: np.array([1, 0]),
-            1: np.array([0, 1]),
-            2: np.array([-1, 0]),
-            3: np.array([0, -1]),
+            0: np.array([1, 0]), #right
+            1: np.array([0, 1]), #up
+            2: np.array([-1, 0]), #left
+            3: np.array([0, -1]), #down
         }
 
         #Observation Space:
@@ -93,6 +93,10 @@ class ResourceManagerEnv(gym.Env):
 
         #store the agent's position before taking a step
         original_position = np.copy(self.agent_position)
+        #make sure the action is valid
+        if action not in [0, 1, 2, 3]:
+            raise ValueError(f"Invalid action {action}. Action should be in the range [0, 1, 2, 3].")
+        
         #choose a direction
         direction = self.action_to_direction[action]
         #Move the agent in that direction
@@ -114,7 +118,7 @@ class ResourceManagerEnv(gym.Env):
 
 
         if terminated:
-            reward = 0  #the agent has reached the target
+            reward = 10  #the agent has reached the target
         elif position_changed:
             reward = -1  #the agent has taken a step
         else:
