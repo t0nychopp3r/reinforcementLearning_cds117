@@ -133,11 +133,10 @@ class ResourceManagerEnv(gym.Env):
 
         self.total_reward += reward
 
-        #stop the episode when reward is -100
-        if self.total_reward == -100:
+        #stop the episode when reward is -100 or less
+        if self.total_reward < -200:
             terminated = True
             self.reset()
-
 
         observation = self.get_obs()
         info = self.get_info()
