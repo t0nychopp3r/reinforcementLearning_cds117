@@ -9,7 +9,7 @@ class ResourceManagerEnv(gym.Env):
     metadata = {"render_modes": ["human", "rgb_array"], "render_fps": 4}
 
 
-    def __init__(self, grid_size=20, render_mode=None, initial_water=100, num_water_resources=10):
+    def __init__(self, grid_size=20, render_mode=None, initial_water=100, num_water_resources=10, window_size=500):
 
         #initialize the reward
         self.total_reward = 0
@@ -17,7 +17,7 @@ class ResourceManagerEnv(gym.Env):
         #Define Grid Size
         self.grid_size = grid_size
         #calculate window size based on grid size - check if needed
-        self.window_size = int(500 + 50 * (grid_size - 10))
+        self.window_size = int(window_size + 50 * (grid_size - 10))
         self.text_height = 100
 
         #Action Space:
