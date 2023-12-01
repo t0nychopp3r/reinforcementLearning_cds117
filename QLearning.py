@@ -3,7 +3,8 @@ from collections import deque
 import random
 
 class QLearningAgent:
-    def __init__(self, env, learning_rate=0.1, discount_factor=0.9, exploration_prob=1.0, epsilon_decay=0.995, replay_buffer_size=1000, batch_size=32):
+    def __init__(self, env, learning_rate=0.1, discount_factor=0.9, exploration_prob=1.0,
+                 epsilon_decay=0.995, replay_buffer_size=1000, batch_size=32, num_bins=10):
         self.env = env
         self.learning_rate = learning_rate
         self.discount_factor = discount_factor
@@ -11,6 +12,7 @@ class QLearningAgent:
         self.epsilon_decay = epsilon_decay
         self.replay_buffer_size = replay_buffer_size
         self.batch_size = batch_size
+        self.num_bins = num_bins
 
         self.state_space_size = np.prod(env.observation_space.shape)
         self.action_space_size = env.action_space.n
@@ -22,10 +24,14 @@ class QLearningAgent:
         self.replay_buffer = deque(maxlen=replay_buffer_size)
     
     def discretize_state(self, state):
-        #normal state conatins q learing and additional info from get:info
-        #we only need the q learning info
         state_array = state[0] if isinstance(state, tuple) else state
-        return state_array.astype(int).flatten()
+
+        discretized_state = []
+        for feature_values in state_array:
+            bin_edges = np.linspace(np.min(feature_values), np.max(feature_values), self.num_bins + 1)
+            discretized_feature = np.digitize(feature_values, bin_edges)
+            discretized_state.append(discretized_feature)
+        return discretized_state
 
     def select_action(self, state):
         #epsilon-greedy policy
@@ -42,9 +48,10 @@ class QLearningAgent:
         next_state_discrete = self.discretize_state(next_state)
 
         #Q-learning update rule
-        #print("state_discrete shape:", state_discrete)
         #print("action:", action)
-        #print("q_table shape:", self.q_table.shape)
+        #print the whole q table for debugging
+        #print("q_table:", self.q_table)
+
         current_q_value = self.q_table[state_discrete, action]
         max_next_q_value = np.max(self.q_table[next_state_discrete])
         new_q_value = (1 - self.learning_rate) * current_q_value + \
@@ -58,7 +65,7 @@ class QLearningAgent:
         #decay exploration probability
         self.exploration_prob = self.exploration_prob * self.epsilon_decay
         #ensure exploration probability is not less than 0.1
-        self.exploration_prob = max(0.1, self.exploration_prob)
+        self.exploration_prob = max(0.1, self.exploration_prob * self.epsilon_decay)
     def sample_from_replay_buffer(self):
         # Sample a batch of experiences from the replay buffer
         return random.sample(self.replay_buffer, self.batch_size)
