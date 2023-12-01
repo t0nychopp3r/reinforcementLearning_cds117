@@ -14,6 +14,8 @@ class Node:
         self.visits = 0
         #total reward of this node
         self.value = 0.0
+        #water resource of this node
+        self.water_resource = 0.0
         #action that led to this node
         self.action = action
 
@@ -29,25 +31,30 @@ class MonteCarloTreeSearch:
         self.simulation_steps = simulation_steps
     
     # Select Function: Select the node with the highest UCB1 value
-    # UCB1: Algorithm for Multi-Armed Bandit Problem
+    # UCB1: Algorithm for Multi-Armed Bandit Problem 
     def select(self, node):
         while node.children:
             valid_children = [child for child in node.children if self.env.action_space.contains(child.action)]
             if valid_children:
-                #UCB1 algorithm --> https://www.turing.com/kb/guide-on-upper-confidence-bound-algorithm-in-reinforced-learning
+                # UCB1 algorithm --> https://www.turing.com/kb/guide-on-upper-confidence-bound-algorithm-in-reinforced-learning
                 node = max(valid_children, key=lambda child: (child.value / (child.visits + 1e-4)) + self.exploration_bonus(node, child))
             else:
-                # If no valid child node is found, break out of the loop
-                break
+                # If no valid child node is found, return the current node
+                print("No valid children found!")
+                return node
+            #print(f"Selected action: {node.action}, Visits: {node.visits}, Value: {node.value}, Exploration Bonus: {self.exploration_bonus(node, node)}")
         return node
 
-    
+
     #exploration bonus: calculate an exploration bonus based on the water resources
     def exploration_bonus(self, parent, child):
-        exploration_weight = 0.5  #weight parameter to priotize exploring
+        exploration_weight = 0.1 / (child.visits + 1) #weight parameter to priotize exploring
+        #water resource bonus term based on the water resource of the child node
         water_bonus = child.water_resource * exploration_weight
-        return water_bonus
-
+        #UCB1 bonus term for visitation count exploration
+        visit_bonus = np.sqrt(np.log(parent.visits + 1) / (child.visits + 1e-4))
+        return water_bonus + visit_bonus
+    
     #Expand Function: Expand the tree by adding a new node
     def expand(self, node):
         actions = np.arange(self.env.action_space.n)
@@ -71,7 +78,6 @@ class MonteCarloTreeSearch:
     def simulate(self, node):
         total_reward = 0
         for _ in range(self.simulation_steps):
-            #action = np.random.randint(4)  # Random action
             action = self.env.action_space.sample()
             #needed for troubleshooting
             #result = self.env.step(action)

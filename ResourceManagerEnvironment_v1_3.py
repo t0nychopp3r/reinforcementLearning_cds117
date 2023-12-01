@@ -40,7 +40,7 @@ class ResourceManagerEnv(gym.Env):
         
         #add water as resource
         self.initial_water = initial_water
-        self.water_resource = 0
+        #self.water_resource = 0
         self.num_water_resources = num_water_resources
         
         self.reset()
@@ -163,7 +163,7 @@ class ResourceManagerEnv(gym.Env):
             #remove the water resource from the list by index
             self.water_positions.pop(index_to_remove)
             #refill 5 units of water when on the same grid cell as a water resource
-            self.water_resource += 5
+            self.water_resource += 10
 
         #check if the agent has picked up half of the initial water resources and spawn new water locations
         #idea: the agent could perform really good so he needs to be able to pick up more water
@@ -179,13 +179,14 @@ class ResourceManagerEnv(gym.Env):
         #penalty for running out of water
         if self.water_resource <= 0:
             reward -= 20
+            terminated = True
 
         self.total_reward += reward
 
-        #stop the episode when reward is -200 or less
-        if self.total_reward < -200:
+        #stop the episode when reward is specific or less
+        if self.total_reward < -1000:
             terminated = True
-            self.reset()
+            #self.reset()
 
         state = self.get_obs()
         info = self.get_info()
@@ -201,7 +202,7 @@ class ResourceManagerEnv(gym.Env):
         return state, reward, done, truncated, info
     
     def render(self):
-            if self.render_mode == "rgb_array":
+            if self.render_mode == "human":
                 return self.render_frame()
     
     def render_frame(self):
