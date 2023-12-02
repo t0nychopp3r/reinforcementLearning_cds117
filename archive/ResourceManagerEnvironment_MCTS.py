@@ -6,6 +6,7 @@ import pygame
 #Create Gym Environment for Resource Manager
 #The environment is a 2D grid with 4 possible actions: up, down, left, right
 #The agent can move in any direction but cannot move outside the grid
+#Environemnt for the Resource Manager v1.2
 
 class ResourceManagerEnv(gym.Env):
     metadata = {"render_modes": ["human", "rgb_array"], "render_fps": 4}
