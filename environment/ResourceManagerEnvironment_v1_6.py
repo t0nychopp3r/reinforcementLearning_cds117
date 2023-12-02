@@ -3,8 +3,7 @@ from gym import spaces
 import numpy as np
 import pygame
 
-#added water as resource
-#ResouceManagerEnvironment_v1_4 and ResouceManagerEnvironment_v1_5 are the same
+#added water as Resource
 
 class ResourceManagerEnv(gym.Env):
     metadata = {"render_modes": ["human", "rgb_array"], "render_fps": 15}
@@ -37,10 +36,9 @@ class ResourceManagerEnv(gym.Env):
         #The observation space is a 2D grid with the agent's position marked as 1
 
         self.observation_space = spaces.Box(low=0, high=1, shape=(grid_size, grid_size), dtype=np.float32)
-        
         #add water as resource
         self.initial_water = initial_water
-        #self.water_resource = 0
+        self.max_water_resources = self.initial_water * 2
         self.num_water_resources = num_water_resources
 
         #reset function will set positions only during the first call
@@ -132,6 +130,7 @@ class ResourceManagerEnv(gym.Env):
         #check if the agent's position has changed
         position_changed = not np.all(self.agent_position == original_position)
 
+        # ***** Termination Logic *****
         #define when done, use terminated as term as it is excpected in gym
         terminated = self.water_resource <= 0
         if terminated:
@@ -150,10 +149,7 @@ class ResourceManagerEnv(gym.Env):
             #deduct water resource when the agent moves
             self.water_resource -= water_depletion_penalty
 
-        if terminated:
-            #penalize running out of water
-            reward = -20 
-        elif position_changed:
+        if position_changed:
             #the agent has taken a step
             reward = -1  
         else:
@@ -163,38 +159,29 @@ class ResourceManagerEnv(gym.Env):
         
         #give reward to the agent if it is close to any water resource
         if min_distance_to_water == 1:
-            reward += 5  #+5 reward when immediately around any water resource
+            reward += 4  #+4 reward when immediately around any water resource
         elif min_distance_to_water <= 4:
             reward += 2  #+2 reward when within 16 fields around any water resource
 
         # ***** Water Logic *****
 
-        #refill water resource when the agent is on the same grid cell as a water resource
-        index_to_remove = next((i for i, pos in enumerate(self.water_positions) if np.all(self.agent_position == pos)), None)
-        #check if the water position was found
-        if index_to_remove is not None:
-            #remove the water resource from the list by index
-            self.water_positions.pop(index_to_remove)
-            #refill 10 units of water when on the same grid cell as a water resource
-            self.water_resource += 10
-
-        #check if the agent has picked up half of the initial water resources and spawn new water locations
-        #idea: the agent could perform really good so he needs to be able to pick up more water
-        if len(self.water_positions) < self.num_water_resources / 2:
-            #respawn new water resources at random locations
-            self.water_positions = []
-            for _ in range(self.num_water_resources):
-                water_position = self.np_random.integers(low=0, high=self.grid_size, size=(2,))
-                while np.any(water_position == self.agent_position) or any(np.all(water_position == pos) for pos in self.water_positions):
-                    water_position = self.np_random.integers(low=0, high=self.grid_size, size=(2,))
-                self.water_positions.append(water_position)
+        #check if agent is on a water resource, give reward when not over max water resource
+        is_on_water = any(np.all(self.agent_position == pos) for pos in self.water_positions)
+        refill_value = 5
+        if is_on_water and self.water_resource < self.max_water_resources:
+            #refill 5 units of water
+            self.water_resource += refill_value
+            reward += 10
+        if is_on_water and self.water_resource + refill_value > self.max_water_resources:
+            #give penalty when over max water resource
+            reward -= 10
+        
 
         self.total_reward += reward
 
         #stop the episode when reward is specific or less
         if self.total_reward < -1000:
             terminated = True
-            #self.reset()
 
         state = self.get_obs()
         info = self.get_info()
