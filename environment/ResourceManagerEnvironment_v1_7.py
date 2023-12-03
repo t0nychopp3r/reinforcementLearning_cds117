@@ -4,13 +4,13 @@ import numpy as np
 import pygame
 import os
 
-#added water as Resource
+#add render mode for images
 
 class ResourceManagerEnv(gym.Env):
     metadata = {"render_modes": ["human", "rgb_array"], "render_fps": 15}
 
 
-    def __init__(self, grid_size=20, render_mode=None, initial_water=100, num_water_resources=10, window_size=500):
+    def __init__(self, grid_size=20, render_mode=None, initial_water=100, num_water_resources=10, window_size=300):
 
         #initialize the reward
         self.total_reward = 0
@@ -187,7 +187,7 @@ class ResourceManagerEnv(gym.Env):
         info = self.get_info()
 
         if self.render_mode == "human":
-            self.render_frame(agent_on_water=is_on_water)
+            self.render_frame()
 
         #set truncated to false as it is not needed
         truncated = False
@@ -200,7 +200,7 @@ class ResourceManagerEnv(gym.Env):
             if self.render_mode == "human":
                 return self.render_frame()
 
-    def render_frame(self, agent_on_water=False):
+    def render_frame(self):
             if self.window is None and self.render_mode == "human":
                 pygame.init()
                 pygame.display.init()
@@ -212,30 +212,18 @@ class ResourceManagerEnv(gym.Env):
             pix_square_size = self.window_size / self.grid_size
 
             # ***** Load Images *****
-            #Load the images
+            #load the images
             water_image = pygame.image.load(os.path.join("images", "water.jpg"))
             agent_image = pygame.image.load(os.path.join("images", "player_neutral.jpg"))
     
-            # Resize images to match the square size
+            #resize images to match the square size
             water_image = pygame.transform.scale(water_image, (int(pix_square_size), int(pix_square_size)))
             agent_image = pygame.transform.scale(agent_image, (int(pix_square_size), int(pix_square_size)))
             #draw water cells (blue squares)
             for water_pos in self.water_positions:
-                pygame.draw.rect(
-                    canvas,
-                    (0, 0, 255),
-                    pygame.Rect(
-                        pix_square_size * water_pos,
-                        (pix_square_size, pix_square_size),
-                    ),
-                )
+                canvas.blit(water_image, (water_pos * pix_square_size))
             #draw the agent
-            pygame.draw.circle(
-                canvas,
-                (48, 195, 26),
-                (self.agent_position + 0.5) * pix_square_size,
-                pix_square_size / 3,
-            )
+            canvas.blit(agent_image, (self.agent_position * pix_square_size))
 
             #draw gridlines
             for x in range(self.grid_size + 1):
