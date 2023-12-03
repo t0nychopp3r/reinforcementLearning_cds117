@@ -92,13 +92,10 @@ class ResourceManagerEnv(gym.Env):
         #Mark the agent's position
         observation[tuple(self.agent_position)] = 1
 
-        #add water to the observation
-        observation += self.water_resource / self.initial_water
-
-        #alternative, mark it with W
-        #for water_pos in self.water_positions:
-        #    observation[tuple(water_pos)] = "W"
-
+        #Mark the water resources with 2
+        for water_pos in self.water_positions:
+            observation[tuple(water_pos)] = 2
+        
         return observation
     
     def get_info(self):

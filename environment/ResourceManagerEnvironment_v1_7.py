@@ -92,13 +92,10 @@ class ResourceManagerEnv(gym.Env):
         #Mark the agent's position
         observation[tuple(self.agent_position)] = 1
 
-        #add water to the observation
-        observation += self.water_resource / self.initial_water
-
-        #alternative, mark it with W
-        #for water_pos in self.water_positions:
-        #    observation[tuple(water_pos)] = "W"
-
+        #Mark the water resources with 2
+        for water_pos in self.water_positions:
+            observation[tuple(water_pos)] = 2
+        
         return observation
     
     def get_info(self):
@@ -214,33 +211,22 @@ class ResourceManagerEnv(gym.Env):
             # ***** Load Images *****
             #load the images
             water_image = pygame.image.load(os.path.join("images", "water.jpg"))
-            agent_image = pygame.image.load(os.path.join("images", "player_neutral.jpg"))
+            agent_image = pygame.image.load(os.path.join("images", "agent.png"))
+            background_image = pygame.image.load(os.path.join("images", "background.jpg"))
     
             #resize images to match the square size
             water_image = pygame.transform.scale(water_image, (int(pix_square_size), int(pix_square_size)))
             agent_image = pygame.transform.scale(agent_image, (int(pix_square_size), int(pix_square_size)))
+            background_image = pygame.transform.scale(background_image, (int(pix_square_size), int(pix_square_size)))
+            #fill the background
+            for x in range(self.grid_size):
+                for y in range(self.grid_size):
+                    canvas.blit(background_image, (x * pix_square_size, y * pix_square_size))
             #draw water cells (blue squares)
             for water_pos in self.water_positions:
                 canvas.blit(water_image, (water_pos * pix_square_size))
             #draw the agent
             canvas.blit(agent_image, (self.agent_position * pix_square_size))
-
-            #draw gridlines
-            for x in range(self.grid_size + 1):
-                pygame.draw.line(
-                    canvas,
-                    0,
-                    (0, pix_square_size * x),
-                    (self.window_size, pix_square_size * x),
-                    width=3,
-                )
-                pygame.draw.line(
-                    canvas,
-                    0,
-                    (pix_square_size * x, 0),
-                    (pix_square_size * x, self.window_size),
-                    width=3,
-                )
 
             #add text to display water resource and total reward
             font = pygame.font.Font(None, 36)
