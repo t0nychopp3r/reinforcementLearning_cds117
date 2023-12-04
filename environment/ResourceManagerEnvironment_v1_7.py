@@ -180,7 +180,8 @@ class ResourceManagerEnv(gym.Env):
         if self.total_reward < -1000:
             terminated = True
 
-        state = self.get_obs()
+        #wrap state for q learning
+        state = (self.get_obs(), self.get_info())
         info = self.get_info()
 
         if self.render_mode == "human":
