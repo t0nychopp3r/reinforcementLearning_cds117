@@ -39,10 +39,15 @@ class QLearningAgent:
         # print the whole q table for debugging
         #print("q_table:", self.q_table)
         #print("state:", state)
+        
+        
         agent_position = np.argwhere(state[0] == 1)
+        #agent_position = np.argwhere( np.array(state[0]).flatten() == 1)[0][0]
+        print("agent_position:", agent_position)
 
         # Use the agent's position as an index in the Q-table
         current_q_value = self.q_table[tuple(agent_position), action]
+        #current_q_value = self.q_table[agent_position, action]
 
         # Extract agent's position from the next state
         next_agent_position = np.argwhere(next_state[0] == 1)
@@ -51,11 +56,17 @@ class QLearningAgent:
         max_next_q_value = np.max(self.q_table[tuple(next_agent_position)])
 
         # Q-learning update rule
+        '''
         new_q_value = (1 - self.learning_rate) * current_q_value + \
                       self.learning_rate * (reward + self.discount_factor * max_next_q_value)
+        '''
 
+        new_q_value = current_q_value + self.learning_rate * (reward + self.discount_factor * max_next_q_value - current_q_value)
+                      
         # Update the Q-value in the Q-table
         self.q_table[tuple(agent_position), action] = new_q_value
+        #self.q_table[agent_position, action] = new_q_value
+
     
         # add the experience to the replay buffer
         self.replay_buffer.append((state, action, reward, next_state))
