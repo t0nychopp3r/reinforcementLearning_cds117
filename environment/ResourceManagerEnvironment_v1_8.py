@@ -11,13 +11,15 @@ class ResourceManagerEnv(gym.Env):
 
 
     def __init__(self, grid_size=20, render_mode=None, initial_water=100, num_water_resources=10,
-                 initial_food=80, num_food_resources=10, window_size=300, danger_mode=False):
+                 initial_food=100, num_food_resources=10, window_size=300, danger_mode=False, max_episode_steps=1000):
 
         #initialize the reward
         self.total_reward = 0
 
         #Define Grid Size
         self.grid_size = grid_size
+        self.num_step = 0
+        self.max_episode_steps = max_episode_steps
         #calculate window size based on grid size - check if needed
         self.window_size = int(window_size + 50 * (grid_size - 10))
         self.text_height = 100
@@ -107,6 +109,7 @@ class ResourceManagerEnv(gym.Env):
         self.total_reward = 0
         self.water_resource = self.initial_water
         self.food_resource = self.initial_food
+        self.num_step = 0
 
         observation = self.get_obs()
         info = self.get_info()
@@ -122,14 +125,12 @@ class ResourceManagerEnv(gym.Env):
 
         #Mark the agent's position
         observation[tuple(self.agent_position)] = 1
-
         #Mark the water resources with 2
         for water_pos in self.water_positions:
             observation[tuple(water_pos)] = 2
         #mark the food resources with 3
         for food_pos in self.food_positions:
             observation[tuple(food_pos)] = 3
-
         #mark the danger resources with 4
         for danger_pos in self.danger_positions:
             observation[tuple(danger_pos)] = 4
@@ -143,7 +144,8 @@ class ResourceManagerEnv(gym.Env):
             'total_reward': self.total_reward,
             'water_resource': self.water_resource,
             'food_resource': self.food_resource,
-            'danger_positions': self.danger_positions
+            'danger_positions': self.danger_positions,
+            'num_step': self.num_step,
         }
         return info
     
@@ -170,7 +172,7 @@ class ResourceManagerEnv(gym.Env):
 
         # ***** Termination Logic *****
         #define when done, use terminated as term as it is excpected in gym
-        terminated = self.water_resource <= 0 or self.food_resource <= 0
+        terminated = self.water_resource <= 0 or self.food_resource <= 0 or self.num_step >= self.max_episode_steps
         if terminated:
             reward = -1000
             terminated = True
@@ -202,13 +204,13 @@ class ResourceManagerEnv(gym.Env):
 
         if min_distance_to_water == 1:
             reward += 4  #+4 reward when immediately around any water resource
-        elif min_distance_to_water <= 4:
-            reward += 2  #+2 reward when within 16 fields around any water resource
+        #elif min_distance_to_water <= 4:
+        #    reward += 2  #+2 reward when within 16 fields around any water resource
 
         if min_distance_to_food == 1:
             reward += 4
-        elif min_distance_to_food <= 4:
-            reward += 2
+        #elif min_distance_to_food <= 4:
+        #    reward += 2
 
 
         # ***** Water Logic *****
@@ -262,10 +264,11 @@ class ResourceManagerEnv(gym.Env):
             reward += resource_imbalance_penalty
         
         self.total_reward += reward
+        self.num_step += 1
 
         #stop the episode when reward is specific or less
-        if self.total_reward < -1000:
-            terminated = True
+        #if self.total_reward < -1000:
+        #    terminated = True
 
         #wrap state for q learning
         state = (self.get_obs(), self.get_info())
@@ -301,7 +304,7 @@ class ResourceManagerEnv(gym.Env):
             water_image = pygame.image.load(os.path.join("images", "water.jpg"))
             food_image = pygame.image.load(os.path.join("images", "food.jpg"))
             agent_image = pygame.image.load(os.path.join("images", "agent.png"))
-            danger_image = pygame.image.load(os.path.join("images", "lion.jpg"))
+            danger_image = pygame.image.load(os.path.join("images", "schnapp.jpg"))
             background_image = pygame.image.load(os.path.join("images", "background.jpg"))
     
             #resize images to match the square size

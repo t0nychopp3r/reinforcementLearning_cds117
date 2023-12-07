@@ -1,0 +1,6 @@
+learning_rate=0.1
+discount_factor=0.9
+exploration_prob=1.0
+epsilon_decay=0.995
+replay_buffer_size=1000
+batch_size=32
