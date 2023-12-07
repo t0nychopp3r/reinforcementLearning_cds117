@@ -10,7 +10,8 @@ class ResourceManagerEnv(gym.Env):
     metadata = {"render_modes": ["human", "rgb_array"], "render_fps": 15}
 
 
-    def __init__(self, grid_size=20, render_mode=None, initial_water=100, num_water_resources=10, initial_food=80, num_food_resources=10, window_size=300):
+    def __init__(self, grid_size=20, render_mode=None, initial_water=100, num_water_resources=10,
+                 initial_food=80, num_food_resources=10, window_size=300, danger_mode=False):
 
         #initialize the reward
         self.total_reward = 0
@@ -47,6 +48,10 @@ class ResourceManagerEnv(gym.Env):
         self.max_food_resources = self.initial_food * 2
         self.num_food_resources = num_food_resources
 
+        #Danger Mode: Toggled on will spawn lions that will kill the agent
+        self.danger_mode = danger_mode
+        self.danger_resource = 5
+
         #reset function will set positions only during the first call
         self.initial_reset_done = False
 
@@ -76,16 +81,26 @@ class ResourceManagerEnv(gym.Env):
                 while np.any(food_position == self.agent_position) or any(np.all(food_position == pos) for pos in self.water_positions) or any(np.all(food_position == pos) for pos in self.food_positions):
                     food_position = self.np_random.integers(low=0, high=self.grid_size, size=(2,))
                 self.food_positions.append(np.copy(food_position))
+            
+            if self.danger_mode:
+                self.danger_positions = []
+                for _ in range(self.danger_resource):
+                    danger_position = self.np_random.integers(low=0, high=self.grid_size, size=(2,))
+                    while np.any(danger_position == self.agent_position) or any(np.all(danger_position == pos) for pos in self.water_positions) or any(np.all(danger_position == pos) for pos in self.food_positions) or any(np.all(danger_position == pos) for pos in self.danger_positions):
+                        danger_position = self.np_random.integers(low=0, high=self.grid_size, size=(2,))
+                    self.danger_positions.append(np.copy(danger_position))
 
 
             self.initial_water_positions = [np.copy(pos) for pos in self.water_positions]
             self.initial_food_positions = [np.copy(pos) for pos in self.food_positions]
+            self.initial_danger_positions = [np.copy(pos) for pos in self.danger_positions]
 
             self.initial_reset_done = True
 
         self.agent_position = np.copy(self.initial_agent_position)
         self.water_positions = [np.copy(pos) for pos in self.initial_water_positions]
         self.food_positions = [np.copy(pos) for pos in self.initial_food_positions]
+        self.danger_positions = [np.copy(pos) for pos in self.initial_danger_positions]
 
 
         #initialize reward and water
@@ -114,6 +129,10 @@ class ResourceManagerEnv(gym.Env):
         #mark the food resources with 3
         for food_pos in self.food_positions:
             observation[tuple(food_pos)] = 3
+
+        #mark the danger resources with 4
+        for danger_pos in self.danger_positions:
+            observation[tuple(danger_pos)] = 4
         
         return observation
     
@@ -124,6 +143,7 @@ class ResourceManagerEnv(gym.Env):
             'total_reward': self.total_reward,
             'water_resource': self.water_resource,
             'food_resource': self.food_resource,
+            'danger_positions': self.danger_positions
         }
         return info
     
@@ -217,6 +237,16 @@ class ResourceManagerEnv(gym.Env):
             #give penalty when over max food resource
             reward -= 10
 
+        # ***** Danger Logic *****
+        if self.danger_mode:
+            #check if agent is on a danger resource
+            is_on_danger = any(np.all(self.agent_position == pos) for pos in self.danger_positions)
+            #if agent is on a danger resource, end the episode
+            if is_on_danger:
+                print(f"Lion ate the agent at {self.agent_position}")
+                reward -= 2000
+                terminated = True
+
         # ***** Resource Balance Reward *****
         #idea: give reward when the agent has a balanced amount of resources
         #define the threshold for water and food
@@ -271,12 +301,14 @@ class ResourceManagerEnv(gym.Env):
             water_image = pygame.image.load(os.path.join("images", "water.jpg"))
             food_image = pygame.image.load(os.path.join("images", "food.jpg"))
             agent_image = pygame.image.load(os.path.join("images", "agent.png"))
+            danger_image = pygame.image.load(os.path.join("images", "lion.jpg"))
             background_image = pygame.image.load(os.path.join("images", "background.jpg"))
     
             #resize images to match the square size
             water_image = pygame.transform.scale(water_image, (int(pix_square_size), int(pix_square_size)))
             food_image = pygame.transform.scale(food_image, (int(pix_square_size), int(pix_square_size)))
             agent_image = pygame.transform.scale(agent_image, (int(pix_square_size), int(pix_square_size)))
+            danger_image = pygame.transform.scale(danger_image, (int(pix_square_size), int(pix_square_size)))
             background_image = pygame.transform.scale(background_image, (int(pix_square_size), int(pix_square_size)))
             #fill the background
             for x in range(self.grid_size):
@@ -288,6 +320,10 @@ class ResourceManagerEnv(gym.Env):
             #draw food cells
             for food_pos in self.food_positions:
                 canvas.blit(food_image, (food_pos * pix_square_size))
+            #draw danger cells
+            if self.danger_mode:
+                for danger_pos in self.danger_positions:
+                    canvas.blit(danger_image, (danger_pos * pix_square_size))
             #draw the agent
             canvas.blit(agent_image, (self.agent_position * pix_square_size))
 
