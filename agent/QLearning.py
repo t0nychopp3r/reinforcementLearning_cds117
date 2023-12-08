@@ -4,7 +4,7 @@ import random
 
 class QLearningAgent:
     def __init__(self, env, learning_rate=0.1, discount_factor=0.9, exploration_prob=1.0,
-                 epsilon_decay=0.995, replay_buffer_size=1000, batch_size=32):
+                 epsilon_decay=0.995, replay_buffer_size=1000, batch_size=32, q_table=None):
         self.env = env
         self.learning_rate = learning_rate
         self.discount_factor = discount_factor
@@ -17,9 +17,12 @@ class QLearningAgent:
         self.state_space_size = np.prod(env.observation_space.shape)
         self.action_space_size = env.action_space.n
 
-        #initialize Q-table with zeros
+        #initialize Q-table with zeros or use the one provided
         #Q table is flattened, means there are grid_size * grid_size arrays of action_space_size length
-        self.q_table = np.zeros((self.state_space_size, self.action_space_size))
+        if q_table is not None:
+            self.q_table = q_table
+        else:
+            self.q_table = np.zeros((self.state_space_size, self.action_space_size))
 
         #initialize replay buffer
         self.replay_buffer = deque(maxlen=replay_buffer_size)

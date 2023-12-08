@@ -246,7 +246,7 @@ class ResourceManagerEnv(gym.Env):
             #if agent is on a danger resource, end the episode
             if is_on_danger:
                 print(f"Lion ate the agent at {self.agent_position}")
-                reward -= 2000
+                reward -= 1000
                 terminated = True
 
         # ***** Resource Balance Reward *****
@@ -256,7 +256,7 @@ class ResourceManagerEnv(gym.Env):
         food_threshold = self.initial_food * 0.5
         #define the reward for having a balanced amount of resources
         resource_balance_reward = 10
-        resource_imbalance_penalty = -200
+        resource_imbalance_penalty = -20
         
         if self.water_resource > water_threshold and self.food_resource > food_threshold:
             reward += resource_balance_reward
@@ -265,10 +265,6 @@ class ResourceManagerEnv(gym.Env):
         
         self.total_reward += reward
         self.num_step += 1
-
-        #stop the episode when reward is specific or less
-        #if self.total_reward < -1000:
-        #    terminated = True
 
         #wrap state for q learning
         state = (self.get_obs(), self.get_info())
