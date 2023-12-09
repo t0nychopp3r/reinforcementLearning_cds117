@@ -256,7 +256,7 @@ class ResourceManagerEnv(gym.Env):
         food_threshold = self.initial_food * 0.5
         #define the reward for having a balanced amount of resources
         resource_balance_reward = 10
-        resource_imbalance_penalty = -20
+        resource_imbalance_penalty = -30
         
         if self.water_resource > water_threshold and self.food_resource > food_threshold:
             reward += resource_balance_reward
