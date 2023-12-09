@@ -172,9 +172,14 @@ class ResourceManagerEnv(gym.Env):
 
         # ***** Termination Logic *****
         #define when done, use terminated as term as it is excpected in gym
-        terminated = self.water_resource <= 0 or self.food_resource <= 0 or self.num_step >= self.max_episode_steps
-        if terminated:
+        terminated = False
+        terminated_resouce = self.water_resource <= 0 or self.food_resource <= 0
+        terminated_steps = self.num_step >= self.max_episode_steps
+        if terminated_resouce:
             reward = -1000
+            terminated = True
+        elif terminated_steps:
+            reward = 100
             terminated = True
 
         # ***** Reward Function  *****
