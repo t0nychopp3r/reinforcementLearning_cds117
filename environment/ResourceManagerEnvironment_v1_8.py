@@ -170,16 +170,19 @@ class ResourceManagerEnv(gym.Env):
         #check if the agent's position has changed
         position_changed = not np.all(self.agent_position == original_position)
 
+        #initialize reward
+        reward = 0
+
         # ***** Termination Logic *****
         #define when done, use terminated as term as it is excpected in gym
         terminated = False
         terminated_resouce = self.water_resource <= 0 or self.food_resource <= 0
         terminated_steps = self.num_step >= self.max_episode_steps
         if terminated_resouce:
-            reward = -1000
+            reward -= 1000
             terminated = True
         elif terminated_steps:
-            reward = 100
+            reward += 100
             terminated = True
 
         # ***** Reward Function  *****
@@ -198,11 +201,11 @@ class ResourceManagerEnv(gym.Env):
             #deduct water/food resource when the agent moves
             self.water_resource -= water_depletion_penalty
             self.food_resource -= food_depletion_penalty
-            reward = -1
+            reward -= 1
         else:
             #idea: the agent didn't move, so give a penalty
             #should be higher than resource depletion penalty
-            reward = -50
+            reward -= 50
         
         #Halo Reward Function - give reward to the agent if it is close to any resource
         #idea: give reward when the agent is close to a resource, split into 2 cases for now

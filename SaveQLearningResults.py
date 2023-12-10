@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 
 
 def save_results(name, initial_observation, final_q_table, episode_rewards, episode_water_resources, epsiode_food_resources,
-                 learning_rate, discount_factor, exploration_prob, epsilon_decay, replay_buffer_size, batch_size):
+                 episode_max_steps, learning_rate, discount_factor, exploration_prob, epsilon_decay, replay_buffer_size, batch_size):
 
     now = datetime.now()
     dt_string = now.strftime("%d-%m-%Y_%H-%M-%S")
@@ -36,8 +36,28 @@ def save_results(name, initial_observation, final_q_table, episode_rewards, epis
     plt.plot(np.ones(len(episode_rewards))*np.mean(episode_rewards))
     plt.plot(episode_water_resources)
     plt.plot(epsiode_food_resources)
-    plt.legend(['Episode Reward', 'Tendency', 'Average', 'Water'])
+    plt.legend(['Episode Reward', 'Tendency', 'Average', 'Water', 'Food'])
     plt.savefig(f"{folder_name}/Plots/learning_progress.png")
+
+    #filter episodes with max steps >= 1000
+    filtered_episodes = [(r, w, f, s) for r, w, f, s in zip(episode_rewards, episode_water_resources, epsiode_food_resources, episode_max_steps) if s >= 1000]
+
+    #unpack the filtered data
+    filtered_rewards, filtered_water_resources, filtered_food_resources, filtered_steps = zip(*filtered_episodes)
+
+    #plot the total rewards for filtered episodes
+    plt.figure(figsize=(15, 5))
+    plt.plot(filtered_rewards)
+    plt.xlabel('Episode')
+    plt.ylabel('Total Reward')
+    plt.title('Learning Progress for Episodes with Max Steps >= 1000')
+    plt.plot(np.convolve(filtered_rewards, np.ones((10,))/10, mode='valid'))
+    plt.plot(np.ones(len(filtered_rewards)) * np.mean(filtered_rewards))
+    plt.plot(filtered_water_resources)
+    plt.plot(filtered_food_resources)
+    plt.legend(['Episode Reward', 'Tendency', 'Average', 'Water', 'Food'])
+    plt.savefig(f"{folder_name}/Plots/max_steps_reached.png")
+
 
     # Subfolder for Hyperparameters
     os.mkdir(f"{folder_name}/Hyperparameters")
