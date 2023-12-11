@@ -312,7 +312,7 @@ class ResourceManagerEnv(gym.Env):
             water_image = pygame.image.load(os.path.join("images", "water.jpg"))
             food_image = pygame.image.load(os.path.join("images", "food.jpg"))
             agent_image = pygame.image.load(os.path.join("images", "agent.png"))
-            danger_image = pygame.image.load(os.path.join("images", "schnapp.jpg"))
+            danger_image = pygame.image.load(os.path.join("images", "lion.jpg"))
             background_image = pygame.image.load(os.path.join("images", "background.jpg"))
     
             #resize images to match the square size
