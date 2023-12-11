@@ -62,7 +62,7 @@ class ResourceManagerEnv(gym.Env):
         self.window = None
         self.clock = None
 
-    def reset(self, seed=None):
+    def reset(self, seed=None, custom_observation=None):
         super().reset(seed=seed)
 
         # ***** static option *****
@@ -111,7 +111,11 @@ class ResourceManagerEnv(gym.Env):
         self.food_resource = self.initial_food
         self.num_step = 0
 
-        observation = self.get_obs()
+        #check if custom observation is given
+        if custom_observation is not None:
+            observation = custom_observation
+        else:
+            observation = self.get_obs()
         info = self.get_info()
 
         if self.render_mode == "human":
@@ -264,7 +268,7 @@ class ResourceManagerEnv(gym.Env):
         food_threshold = self.initial_food * 0.5
         #define the reward for having a balanced amount of resources
         resource_balance_reward = 10
-        resource_imbalance_penalty = -30
+        resource_imbalance_penalty = -50
         
         if self.water_resource > water_threshold and self.food_resource > food_threshold:
             reward += resource_balance_reward

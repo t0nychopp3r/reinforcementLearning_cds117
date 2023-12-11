@@ -38,3 +38,4 @@
   0., 0.],
  [0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
   0., 0.]]
+{'agent_position': array([10, 12]), 'total_reward': 1957, 'water_resource': -0.5, 'food_resource': 204.5, 'danger_positions': [array([ 4, 19]), array([17,  7]), array([ 1, 10]), array([14, 18]), array([13,  1])], 'num_step': 551}
